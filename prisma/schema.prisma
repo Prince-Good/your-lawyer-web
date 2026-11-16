@@ -1,0 +1,99 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  CLIENT
+  LAWYER
+  ADMIN
+}
+
+enum VerificationStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum CaseStatus {
+  OPEN
+  QUOTED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum QuotationStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  WITHDRAWN
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  passwordHash  String
+  name          String
+  phone         String?
+  role          Role      @default(CLIENT)
+  emailVerified DateTime?
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  lawyerProfile LawyerProfile?
+  casesAsClient Case[]          @relation("ClientCases")
+}
+
+model LawyerProfile {
+  id                 String             @id @default(cuid())
+  userId             String             @unique
+  user               User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  barNumber          String?
+  yearsOfExperience  Int?
+  bio                String?
+  specializations    String[]
+  location           String?
+  verificationStatus VerificationStatus @default(PENDING)
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  quotations Quotation[]
+}
+
+model Case {
+  id          String     @id @default(cuid())
+  title       String
+  description String
+  category    String
+  status      CaseStatus @default(OPEN)
+  clientId    String
+  client      User       @relation("ClientCases", fields: [clientId], references: [id])
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  quotations Quotation[]
+
+  @@index([clientId])
+  @@index([status])
+}
+
+model Quotation {
+  id        String          @id @default(cuid())
+  caseId    String
+  case      Case            @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  lawyerId  String
+  lawyer    LawyerProfile   @relation(fields: [lawyerId], references: [id])
+  amountKobo Int            // fee in kobo (1 NGN = 100 kobo), avoids float errors
+  message   String?
+  status    QuotationStatus @default(PENDING)
+  createdAt DateTime        @default(now())
+
+  @@unique([caseId, lawyerId])
+  @@index([lawyerId])
+}
