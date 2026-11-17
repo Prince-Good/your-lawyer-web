@@ -1,19 +1,17 @@
 import type { Metadata } from "next";
-import { Fraunces, Inter } from "next/font/google";
+import "@fontsource-variable/fraunces";
+import "@fontsource-variable/inter";
 import "./globals.css";
-
-const serif = Fraunces({ subsets: ["latin"], variable: "--font-serif" });
-const sans = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
   title: "YOUR LAWYER",
-  description: "Find verified lawyers, book consultations and manage your legal matters.",
+  description: "Find and hire verified lawyers in Nigeria.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${serif.variable} ${sans.variable}`}>
-      <body className="bg-paper font-sans text-navy-900 antialiased">{children}</body>
+    <html lang="en">
+      <body>{children}</body>
     </html>
   );
 }
